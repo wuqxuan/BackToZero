@@ -16,7 +16,7 @@ public class CameraFollowPlayer : MonoBehaviour
     {
         if (!m_groundController.IsStartGame)
         {
-            // m_camera.transform.position = new Vector3(m_groundController.BallTransform.position.x, m_groundController.BallTransform.position.y, -10.0f); 
+            m_camera.transform.position = new Vector3(m_groundController.BallTransform.position.x, m_groundController.BallTransform.position.y, -10.0f); 
         }
        
     }

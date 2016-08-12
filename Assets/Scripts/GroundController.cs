@@ -27,7 +27,7 @@ public class GroundController : MonoBehaviour
     /// <summary> （旋转后）Top视图中Ground的Position.z </summary>
     private Dictionary<string, float> m_topPositionZ = new Dictionary<string, float>();
     /// <summary> Ground初始的localScale </summary>
-    private float m_initialScaleX;
+    private List<Vector3> m_initialScale = new List<Vector3>();
     /// <summary> Ball在各个Ground上旋转到Top视图，Ground旋转后的Position.z </summary>
     private Dictionary<string, Dictionary<string, float>> m_rotatedPositionZ = new Dictionary<string, Dictionary<string, float>>();
     /// <summary> Ball中心到Ground中心的距离 </summary>
@@ -67,8 +67,8 @@ public class GroundController : MonoBehaviour
             initialFrontPosition.Add(m_groundTransforms[i].position);
             ballPosition.Add(new Vector3(m_groundTransforms[i].position.x, m_groundTransforms[i].position.y + mc_ballRadius, m_groundTransforms[i].position.z));
             m_topPositionZ.Add(m_groundTransforms[i].gameObject.name, m_groundTransforms[i].position.z + mc_ballRadius);
+            m_initialScale.Add(m_groundTransforms[i].localScale);
         }
-        m_initialScaleX = m_groundTransforms[0].localScale.x;
         // 获得Ball在各个Floor上时，旋转后各个Floor的Position.z
         for (int i = 0; i < ballPosition.Count; i++)
         {
@@ -117,7 +117,7 @@ public class GroundController : MonoBehaviour
         m_groundName = GetNameTouchingBall();
         IsLargerThanBallPosZ();
         float currentScaleX = m_groundTransforms[0].localScale.x;
-        float ratio = currentScaleX / m_initialScaleX;
+        float ratio = currentScaleX / m_initialScale[0].x;
         // Debug.Log(ratio + " : ratio");
         // Debug.Log(m_scaleRatio + " : m_scaleRatio");
         //==============================================================================================
@@ -162,12 +162,14 @@ public class GroundController : MonoBehaviour
                 // 若不是原始尺寸，先恢复
                 BackToTopInitialScale(ratio);
                 RotateToFrontScene(m_groundName);
+                SetScaleForFront(1.2f);
             }
             // 从Front视图旋转到Top视图
             else
             {
                 // 若不是原始尺寸，先恢复
                 BackToFrontInitialScale(ratio);
+                SetScaleForTop(0.1f);
                 RotateToTopScene(m_groundName);
             }
         }
@@ -210,9 +212,9 @@ public class GroundController : MonoBehaviour
         // 2.恢复Front视图Position.z
         ResetFrontPositionZ(m_frontPositionZ);
         // 3.旋转到Top视图: 延时0.1s是为了等待Ball和Ground的Position.z设置好（必须要有延时，否则旋转不正确）
-        RotateAroundBall(-90.0f, 1.0f, 0.1f);
+        RotateAroundBall(-90.0f, 0.9f, 0.2f);
         // 4.设置Top视图Position.z相等
-        SetPositionZ(m_topPositionZ[objectName], 1.2f);
+        SetPositionZ(m_topPositionZ[objectName], 1.1f);
         // End =========================================================================================
     }
 
@@ -285,7 +287,7 @@ public class GroundController : MonoBehaviour
         }
         m_scaleRatio = 1;
     }
-     /// <summary> Front视图恢复到初始Scale </summary>
+    /// <summary> Front视图恢复到初始Scale </summary>
     void BackToTopInitialScale(float scaleRatio)
     {
         int ratio = (int)scaleRatio;
@@ -308,31 +310,42 @@ public class GroundController : MonoBehaviour
         m_scaleRatio = 1;
     }
     /// <summary> 为旋转到Top视图准备, 恢复Scale.y </summary>
-    void SetScaleForTop(float scaleRatio)
+    void SetScaleForTop(float duration)
     {
+        StartCoroutine(WaitForSetScaleForTop(duration));
+    }
+    IEnumerator WaitForSetScaleForTop(float duration)
+    {
+        yield return new WaitForSeconds(duration);
         for (int i = 0; i < m_groundTransforms.Count; i++)
         {
-            Vector3 m_currentCubePos = m_groundTransforms[i].position;
-            Vector3 m_distanceToBall = m_currentCubePos - m_ballPosition;
-            // 改变位置Position.y
-            m_groundTransforms[i].position = new Vector3(m_groundTransforms[i].position.x, m_ballPosition.y + m_distanceToBall.y * scaleRatio, m_groundTransforms[i].position.z);
-            // 恢复Scale.y
-            m_groundTransforms[i].localScale = new Vector3(m_groundTransforms[i].localScale.x, m_groundTransforms[i].localScale.y * scaleRatio, m_groundTransforms[i].localScale.z);
+            float ratioY = m_initialScale[i].y;
+            SetGroundScale(m_groundTransforms[i], ratioY);
         }
     }
     /// <summary> 为旋转到Front视图准备, 缩放Scale.y </summary>
-    void SetScaleForFront(float scaleRatio)
+    void SetScaleForFront(float duration)
     {
+        StartCoroutine(WaitForSetScaleForFront(duration));
+    }
+    IEnumerator WaitForSetScaleForFront(float duration)
+    {
+        yield return new WaitForSeconds(duration);
         for (int i = 0; i < m_groundTransforms.Count; i++)
         {
-            float currentScale = m_groundTransforms[i].localScale.x;
-            Vector3 m_currentCubePos = m_groundTransforms[i].position;
-            Vector3 m_distanceToBall = m_currentCubePos - m_ballPosition;
-            // 改变位置Position.y
-            m_groundTransforms[i].position = new Vector3(m_groundTransforms[i].position.x, m_ballPosition.y + m_distanceToBall.y * scaleRatio, m_groundTransforms[i].position.z);
-            // 缩放Scale.y到单位宽度
-            m_groundTransforms[i].localScale = new Vector3(m_groundTransforms[i].localScale.x, m_groundTransforms[i].localScale.y * scaleRatio, m_groundTransforms[i].localScale.z);
+            float ratioY = 1 / m_initialScale[i].y;
+            SetGroundScale(m_groundTransforms[i], ratioY);
         }
+    }
+    void SetGroundScale(Transform ground, float ratio)
+    {
+        float ratioY = ratio;
+        Vector3 m_currentCubePos = ground.position;
+        Vector3 m_distanceToBall = m_currentCubePos - m_ballPosition;
+        // 改变位置Position.y
+        ground.position = new Vector3(ground.position.x, m_ballPosition.y + m_distanceToBall.y, ground.position.z);
+        // 缩放Scale.y到单位宽度
+        ground.localScale = new Vector3(ground.localScale.x, ground.localScale.y * ratioY, ground.localScale.z);
     }
     //==============================================================================================
     /// <summary> 旋转Ground </summary>
