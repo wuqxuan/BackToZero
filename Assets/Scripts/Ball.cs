@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 public class Ball : MonoBehaviour
 {
@@ -55,7 +54,6 @@ public class Ball : MonoBehaviour
             m_isCollideWithObject = true;
             m_collideObjectName = other.gameObject.name;
         }
-		
         // Debug.Log("Ball: 开始接触 " + m_collideObjectName + "," + "m_isCollideWithObject = " + m_isCollideWithObject);
     }
 
@@ -74,7 +72,7 @@ public class Ball : MonoBehaviour
         if (other.gameObject.CompareTag("Ground"))
         {
             m_isCollideWithObject = false;
-        }
-        Debug.Log("Ball: 不再接触 " + m_collideObjectName + "," + "m_isCollideWithObject = " + m_isCollideWithObject);
+            // Debug.Log("Ball: 不再接触 " + m_collideObjectName + "," + "m_isCollideWithObject = " + m_isCollideWithObject);
+        }  
     }
 }

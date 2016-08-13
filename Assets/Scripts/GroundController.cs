@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
-
+using System;
 
 public class GroundController : MonoBehaviour
 {
@@ -11,7 +11,7 @@ public class GroundController : MonoBehaviour
     private Transform m_ballTransform;
     private Vector3 m_ballPosition;
     private bool m_isInTopScene = false;
-    private bool m_isStartGame = true;
+    private bool m_isStartGame = false;
     private bool m_isLargerThanBallPosZ;
     private float m_currentOffsetPosY;
     private string m_groundName;
@@ -32,6 +32,9 @@ public class GroundController : MonoBehaviour
     private Dictionary<string, Dictionary<string, float>> m_rotatedPositionZ = new Dictionary<string, Dictionary<string, float>>();
     /// <summary> Ball中心到Ground中心的距离 </summary>
     private const float mc_ballRadius = 0.35f;
+    private float m_currentTime = 0.0f;
+    /// <summary> 空格键锁定时间，保证一次旋转执行完后才可以执行下次旋转 </summary>
+    private const float mc_spaceKeyLockDuration = 1.3f;
     //==============================================================================================
     // Property
     public bool IsInTopScene
@@ -118,11 +121,9 @@ public class GroundController : MonoBehaviour
         IsLargerThanBallPosZ();
         float currentScaleX = m_groundTransforms[0].localScale.x;
         float ratio = currentScaleX / m_initialScale[0].x;
-        // Debug.Log(ratio + " : ratio");
-        // Debug.Log(m_scaleRatio + " : m_scaleRatio");
         //==============================================================================================
-        // Q, Z key
-        if (Input.GetKeyDown(KeyCode.Q) && m_scaleRatio <= 2)
+        // 按向上方向键，放大2x
+        if (Input.GetKeyDown(KeyCode.UpArrow) && m_scaleRatio <= 2)
         {
             m_scaleRatio++;
             if (m_isInTopScene)
@@ -135,32 +136,30 @@ public class GroundController : MonoBehaviour
             }
 
         }
-
-        if (Input.GetKeyDown(KeyCode.Z) && m_scaleRatio >= 1)
+        // 按向下方向键，缩小2x
+        if (Input.GetKeyDown(KeyCode.DownArrow) && m_scaleRatio >= 1)
         {
             m_scaleRatio--;
             if (m_isInTopScene)
             {
                 ScaleInTop(0.5f);
-                // ScaleForFront(0.5f);
             }
             else
             {
                 ScaleInFront(0.5f);
-                // ScaleForFront(0.5f);
             }
-
         }
         //==============================================================================================
         // Space key
         // ToDo: 连续按Space键导致旋转bug
-        if (Input.GetKeyDown(KeyCode.Space))
+        Debug.Log(Input.GetKeyDown(KeyCode.Space) + " :Input.GetKeyDown(KeyCode.Space" + Time.time  + " :Time.time + " + m_currentTime + " :m_currentTime");
+        if (Input.GetKeyDown(KeyCode.Space) && Time.time >= m_currentTime && m_isStartGame)
         {
+            m_currentTime = Time.time + mc_spaceKeyLockDuration;
             // 从Top视图旋转到Front视图
             if (m_isInTopScene)
             {
                 // 若不是原始尺寸，先恢复
-                // ToDo: top y 移动，放大 旋转front 旋转top位置不对
                 BackToTopInitialScale(ratio);
                 RotateToFrontScene(m_groundName, 0.1f);
                 SetScaleForFront(1.2f);
@@ -173,14 +172,16 @@ public class GroundController : MonoBehaviour
                 SetScaleForTop(0.1f);
                 RotateToTopScene(m_groundName);
             }
+
         }
     }
     /// <summary> 开始运行游戏，自动旋转到Top视图 </summary>
     void LateUpdate()
     {
-        if (m_isStartGame && m_ballScript.IsCollideWithObject)
+        if (!m_isStartGame && m_ballScript.IsCollideWithObject)
         {
-            m_isStartGame = false;
+            m_currentTime = Time.time + mc_spaceKeyLockDuration;
+            m_isStartGame = true;
             RotateToTopScene(m_groundName);
         }
     }
@@ -188,20 +189,6 @@ public class GroundController : MonoBehaviour
     private void RotateToFrontScene(string objectName, float duration)
     {
         StartCoroutine(WaitForRotateToFrontScene(objectName, duration));
-        // m_isInTopScene = false;
-        // // Begin =======================================================================================
-        // // 执行时间顺序: 1->2->3->4
-        // // 1.更新Ball的Position.z，等于其后方的Ground旋转到Top视图的Position.z - mc_ballRadius.
-        // Debug.Log(objectName + " :objectName");
-        // m_ballTransform.position = new Vector3(m_ballTransform.position.x, m_ballTransform.position.y, m_rotatedPositionZ[objectName][objectName] - mc_ballRadius);
-        // // 2.恢复Top视图Position.z
-        // ResetTopPositionZ(m_rotatedPositionZ[objectName]);
-        // // 3.转到Front视图
-        // RotateAroundBall(90.0f, 1.0f, 0.1f);
-        // // 4.设置Front视图Position.z相等
-        // SetPositionZ(m_initialFrontPosZ[objectName], 1.1f);
-        // // End =========================================================================================
-        // SetGravity(true, 1.2f);
     }
     IEnumerator WaitForRotateToFrontScene(string objectName, float duration)
     {
@@ -210,7 +197,7 @@ public class GroundController : MonoBehaviour
         // Begin =======================================================================================
         // 执行时间顺序: 1->2->3->4
         // 1.更新Ball的Position.z，等于其后方的Ground旋转到Top视图的Position.z - mc_ballRadius.
-        Debug.Log(objectName + " :objectName");
+        // Debug.Log(objectName + " :objectName");
         m_ballTransform.position = new Vector3(m_ballTransform.position.x, m_ballTransform.position.y, m_rotatedPositionZ[objectName][objectName] - mc_ballRadius);
         // 2.恢复Top视图Position.z
         ResetTopPositionZ(m_rotatedPositionZ[objectName]);
@@ -303,7 +290,6 @@ public class GroundController : MonoBehaviour
                 break;
             default:
                 // 缩放1x，不做处理.
-                // Debug.Log("缩放1x，不做处理");
                 break;
         }
         m_scaleRatio = 1;
@@ -325,7 +311,6 @@ public class GroundController : MonoBehaviour
                 break;
             default:
                 // 缩放1x，不做处理.
-                // Debug.Log("缩放1x，不做处理");
                 break;
         }
         m_scaleRatio = 1;
