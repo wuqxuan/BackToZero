@@ -53,8 +53,9 @@ public class Ball : MonoBehaviour
         if (other.gameObject.CompareTag("Ground"))
         {
             m_isCollideWithObject = true;
+            m_collideObjectName = other.gameObject.name;
         }
-		m_collideObjectName = other.gameObject.name;
+		
         // Debug.Log("Ball: 开始接触 " + m_collideObjectName + "," + "m_isCollideWithObject = " + m_isCollideWithObject);
     }
 
@@ -63,14 +64,17 @@ public class Ball : MonoBehaviour
         if (other.gameObject.CompareTag("Ground"))
         {
             m_isCollideWithObject = true;
+            m_collideObjectName = other.gameObject.name;
         }
-		m_collideObjectName = other.gameObject.name;
         // Debug.Log("Ball: 持续接触 " + m_collideObjectName + "," + "m_isCollideWithObject = " + m_isCollideWithObject);
     }
 
     void OnCollisionExit(Collision other)
     {
-        m_isCollideWithObject = false;
-        // Debug.Log("Ball: 不再接触 " + m_collideObjectName + "," + "m_isCollideWithObject = " + m_isCollideWithObject);
+        if (other.gameObject.CompareTag("Ground"))
+        {
+            m_isCollideWithObject = false;
+        }
+        Debug.Log("Ball: 不再接触 " + m_collideObjectName + "," + "m_isCollideWithObject = " + m_isCollideWithObject);
     }
 }

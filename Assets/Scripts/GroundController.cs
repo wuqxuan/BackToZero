@@ -160,8 +160,9 @@ public class GroundController : MonoBehaviour
             if (m_isInTopScene)
             {
                 // 若不是原始尺寸，先恢复
+                // ToDo: top y 移动，放大 旋转front 旋转top位置不对
                 BackToTopInitialScale(ratio);
-                RotateToFrontScene(m_groundName);
+                RotateToFrontScene(m_groundName, 0.1f);
                 SetScaleForFront(1.2f);
             }
             // 从Front视图旋转到Top视图
@@ -184,19 +185,39 @@ public class GroundController : MonoBehaviour
         }
     }
     /// <summary> 旋转到Front视图 </summary>
-    private void RotateToFrontScene(string objectName)
+    private void RotateToFrontScene(string objectName, float duration)
     {
+        StartCoroutine(WaitForRotateToFrontScene(objectName, duration));
+        // m_isInTopScene = false;
+        // // Begin =======================================================================================
+        // // 执行时间顺序: 1->2->3->4
+        // // 1.更新Ball的Position.z，等于其后方的Ground旋转到Top视图的Position.z - mc_ballRadius.
+        // Debug.Log(objectName + " :objectName");
+        // m_ballTransform.position = new Vector3(m_ballTransform.position.x, m_ballTransform.position.y, m_rotatedPositionZ[objectName][objectName] - mc_ballRadius);
+        // // 2.恢复Top视图Position.z
+        // ResetTopPositionZ(m_rotatedPositionZ[objectName]);
+        // // 3.转到Front视图
+        // RotateAroundBall(90.0f, 1.0f, 0.1f);
+        // // 4.设置Front视图Position.z相等
+        // SetPositionZ(m_initialFrontPosZ[objectName], 1.1f);
+        // // End =========================================================================================
+        // SetGravity(true, 1.2f);
+    }
+    IEnumerator WaitForRotateToFrontScene(string objectName, float duration)
+    {
+        yield return new WaitForSeconds(duration);
         m_isInTopScene = false;
         // Begin =======================================================================================
         // 执行时间顺序: 1->2->3->4
         // 1.更新Ball的Position.z，等于其后方的Ground旋转到Top视图的Position.z - mc_ballRadius.
+        Debug.Log(objectName + " :objectName");
         m_ballTransform.position = new Vector3(m_ballTransform.position.x, m_ballTransform.position.y, m_rotatedPositionZ[objectName][objectName] - mc_ballRadius);
         // 2.恢复Top视图Position.z
         ResetTopPositionZ(m_rotatedPositionZ[objectName]);
         // 3.转到Front视图
-        RotateAroundBall(90.0f, 1.0f, 0.1f);
+        RotateAroundBall(90.0f, 0.6f, 0.2f);
         // 4.设置Front视图Position.z相等
-        SetPositionZ(m_initialFrontPosZ[objectName], 1.1f);
+        SetPositionZ(m_initialFrontPosZ[objectName], 0.9f);
         // End =========================================================================================
         SetGravity(true, 1.2f);
     }
@@ -287,7 +308,7 @@ public class GroundController : MonoBehaviour
         }
         m_scaleRatio = 1;
     }
-    /// <summary> Front视图恢复到初始Scale </summary>
+    /// <summary> Top视图恢复到初始Scale </summary>
     void BackToTopInitialScale(float scaleRatio)
     {
         int ratio = (int)scaleRatio;
