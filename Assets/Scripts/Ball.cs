@@ -75,4 +75,13 @@ public class Ball : MonoBehaviour
             // Debug.Log("Ball: 不再接触 " + m_collideObjectName + "," + "m_isCollideWithObject = " + m_isCollideWithObject);
         }  
     }
+
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.CompareTag("Goal"))
+        {
+            other.gameObject.SetActive(false);
+            Application.Quit();
+        }
+    }
 }

@@ -54,6 +54,7 @@
      <Compile Include="Assets\Scripts\ControllingCameraAspectScript.cs" />
      <Compile Include="Assets\Scripts\Ground.cs" />
      <Compile Include="Assets\Scripts\GroundController.cs" />
+     <Compile Include="Assets\Scripts\RotateGoal.cs" />
      <None Include="Assets\Plugins\DOTween\DOTween43.xml" />
      <None Include="Assets\Plugins\DOTween\DOTween46.xml" />
      <None Include="Assets\Plugins\DOTween\DOTween50.xml" />

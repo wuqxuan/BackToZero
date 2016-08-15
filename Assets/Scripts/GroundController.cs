@@ -142,7 +142,8 @@ public class GroundController : MonoBehaviour
         //==============================================================================================
         // Space key
         // Debug.Log(Input.GetKeyDown(KeyCode.Space) + " :Input.GetKeyDown(KeyCode.Space" + Time.time  + " :Time.time + " + m_currentTime + " :m_currentTime");
-        if (Input.GetKeyDown(KeyCode.Space) && Time.time >= m_currentTime && m_isStartGame)
+        bool isCanPressSpaceKey = (Time.time >= m_currentTime) && m_isStartGame && m_ballScript.IsCollideWithObject;
+        if (Input.GetKeyDown(KeyCode.Space) && isCanPressSpaceKey)
         {
             m_currentTime = Time.time + mc_spaceKeyLockDuration;
             // 从Top视图旋转到Front视图
@@ -161,7 +162,6 @@ public class GroundController : MonoBehaviour
                 SetScaleForTop(0.1f);
                 RotateToTopScene(m_groundName);
             }
-
         }
     }
     /// <summary> 开始运行游戏，自动旋转到Top视图 </summary>
@@ -320,6 +320,7 @@ public class GroundController : MonoBehaviour
         for (int i = 0; i < m_groundTransforms.Count; i++)
         {
             float ratioY = 1 / m_initialScale[i].y;
+            // 缩放Scale.y到单位宽度
             SetGroundScale(m_groundTransforms[i], ratioY);
         }
     }
