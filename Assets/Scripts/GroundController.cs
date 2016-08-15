@@ -151,8 +151,7 @@ public class GroundController : MonoBehaviour
         }
         //==============================================================================================
         // Space key
-        // ToDo: 连续按Space键导致旋转bug
-        Debug.Log(Input.GetKeyDown(KeyCode.Space) + " :Input.GetKeyDown(KeyCode.Space" + Time.time  + " :Time.time + " + m_currentTime + " :m_currentTime");
+        // Debug.Log(Input.GetKeyDown(KeyCode.Space) + " :Input.GetKeyDown(KeyCode.Space" + Time.time  + " :Time.time + " + m_currentTime + " :m_currentTime");
         if (Input.GetKeyDown(KeyCode.Space) && Time.time >= m_currentTime && m_isStartGame)
         {
             m_currentTime = Time.time + mc_spaceKeyLockDuration;
@@ -196,15 +195,22 @@ public class GroundController : MonoBehaviour
         m_isInTopScene = false;
         // Begin =======================================================================================
         // 执行时间顺序: 1->2->3->4
-        // 1.更新Ball的Position.z，等于其后方的Ground旋转到Top视图的Position.z - mc_ballRadius.
-        // Debug.Log(objectName + " :objectName");
-        m_ballTransform.position = new Vector3(m_ballTransform.position.x, m_ballTransform.position.y, m_rotatedPositionZ[objectName][objectName] - mc_ballRadius);
-        // 2.恢复Top视图Position.z
-        ResetTopPositionZ(m_rotatedPositionZ[objectName]);
+
+        if (m_rotatedPositionZ.ContainsKey(objectName))
+        {
+            // 1.更新Ball的Position.z，等于其后方的Ground旋转到Top视图的Position.z - mc_ballRadius.
+            m_ballTransform.position = new Vector3(m_ballTransform.position.x, m_ballTransform.position.y, m_rotatedPositionZ[objectName][objectName] - mc_ballRadius);
+            // 2.恢复Top视图Position.z
+            ResetTopPositionZ(m_rotatedPositionZ[objectName]);
+        }
         // 3.转到Front视图
         RotateAroundBall(90.0f, 0.6f, 0.2f);
-        // 4.设置Front视图Position.z相等
-        SetPositionZ(m_initialFrontPosZ[objectName], 0.9f);
+        if (m_initialFrontPosZ.ContainsKey(objectName))
+        {
+            // 4.设置Front视图Position.z相等
+            SetPositionZ(m_initialFrontPosZ[objectName], 0.9f);
+        }
+
         // End =========================================================================================
         SetGravity(true, 1.2f);
     }
@@ -215,14 +221,20 @@ public class GroundController : MonoBehaviour
         m_isInTopScene = true;
         // Begin =======================================================================================
         // 执行时间顺序: 1->2->3->4
-        // 1.更新Ball的Position.z和其下方的Ground初始的Position.z一样
-        m_ballTransform.position = new Vector3(m_ballTransform.position.x, m_ballTransform.position.y, m_initialFrontPosZ[objectName]);
+        if (m_initialFrontPosZ.ContainsKey(objectName))
+        {
+            // 1.更新Ball的Position.z和其下方的Ground初始的Position.z一样
+            m_ballTransform.position = new Vector3(m_ballTransform.position.x, m_ballTransform.position.y, m_initialFrontPosZ[objectName]);
+        }
         // 2.恢复Front视图Position.z
         ResetFrontPositionZ(m_frontPositionZ);
-        // 3.旋转到Top视图: 延时0.1s是为了等待Ball和Ground的Position.z设置好（必须要有延时，否则旋转不正确）
+        // 3.旋转到Top视图: 延时0.2s是为了等待Ball和Ground的Position.z设置好（必须要有延时，否则旋转不正确）
         RotateAroundBall(-90.0f, 0.9f, 0.2f);
-        // 4.设置Top视图Position.z相等
-        SetPositionZ(m_topPositionZ[objectName], 1.1f);
+        if (m_topPositionZ.ContainsKey(objectName))
+        {
+            // 4.设置Top视图Position.z相等
+            SetPositionZ(m_topPositionZ[objectName], 1.1f);
+        }
         // End =========================================================================================
     }
 
