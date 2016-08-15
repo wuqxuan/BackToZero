@@ -159,7 +159,7 @@ public class GroundController : MonoBehaviour
             if (m_isInTopScene)
             {
                 // 若不是原始尺寸，先恢复
-                BackToTopInitialScale(ratio);
+                BackToInitialScale(new Action<float>(ScaleInTop), ratio);
                 RotateToFrontScene(m_groundName, 0.1f);
                 SetScaleForFront(1.2f);
             }
@@ -167,7 +167,7 @@ public class GroundController : MonoBehaviour
             else
             {
                 // 若不是原始尺寸，先恢复
-                BackToFrontInitialScale(ratio);
+                BackToInitialScale(new Action<float>(ScaleInFront), ratio);
                 SetScaleForTop(0.1f);
                 RotateToTopScene(m_groundName);
             }
@@ -195,22 +195,21 @@ public class GroundController : MonoBehaviour
         m_isInTopScene = false;
         // Begin =======================================================================================
         // 执行时间顺序: 1->2->3->4
-
-        if (m_rotatedPositionZ.ContainsKey(objectName))
+        if (m_rotatedPositionZ.ContainsKey(objectName) && m_initialFrontPosZ.ContainsKey(objectName))
         {
             // 1.更新Ball的Position.z，等于其后方的Ground旋转到Top视图的Position.z - mc_ballRadius.
             m_ballTransform.position = new Vector3(m_ballTransform.position.x, m_ballTransform.position.y, m_rotatedPositionZ[objectName][objectName] - mc_ballRadius);
             // 2.恢复Top视图Position.z
             ResetTopPositionZ(m_rotatedPositionZ[objectName]);
-        }
-        // 3.转到Front视图
-        RotateAroundBall(90.0f, 0.6f, 0.2f);
-        if (m_initialFrontPosZ.ContainsKey(objectName))
-        {
+            // 3.转到Front视图
+            RotateAroundBall(90.0f, 0.6f, 0.2f);
             // 4.设置Front视图Position.z相等
             SetPositionZ(m_initialFrontPosZ[objectName], 0.9f);
         }
-
+        else
+        {
+            Debug.LogError("Ground和Ball不接触, 不能旋转");
+        }
         // End =========================================================================================
         SetGravity(true, 1.2f);
     }
@@ -221,19 +220,20 @@ public class GroundController : MonoBehaviour
         m_isInTopScene = true;
         // Begin =======================================================================================
         // 执行时间顺序: 1->2->3->4
-        if (m_initialFrontPosZ.ContainsKey(objectName))
+        if (m_initialFrontPosZ.ContainsKey(objectName) && m_topPositionZ.ContainsKey(objectName))
         {
             // 1.更新Ball的Position.z和其下方的Ground初始的Position.z一样
             m_ballTransform.position = new Vector3(m_ballTransform.position.x, m_ballTransform.position.y, m_initialFrontPosZ[objectName]);
-        }
-        // 2.恢复Front视图Position.z
-        ResetFrontPositionZ(m_frontPositionZ);
-        // 3.旋转到Top视图: 延时0.2s是为了等待Ball和Ground的Position.z设置好（必须要有延时，否则旋转不正确）
-        RotateAroundBall(-90.0f, 0.9f, 0.2f);
-        if (m_topPositionZ.ContainsKey(objectName))
-        {
+            // 2.恢复Front视图Position.z
+            ResetFrontPositionZ(m_frontPositionZ);
+            // 3.旋转到Top视图: 延时0.2s是为了等待Ball和Ground的Position.z设置好（必须要有延时，否则旋转不正确）
+            RotateAroundBall(-90.0f, 0.9f, 0.2f);
             // 4.设置Top视图Position.z相等
             SetPositionZ(m_topPositionZ[objectName], 1.1f);
+        }
+        else
+        {
+            Debug.LogError("Ground和Ball不接触, 不能旋转");
         }
         // End =========================================================================================
     }
@@ -249,7 +249,6 @@ public class GroundController : MonoBehaviour
         return groundName;
     }
 
-    //==============================================================================================
     /// <summary> Front视图缩放 </summary>
     public void ScaleInFront(float scaleRatio)
     {
@@ -269,7 +268,6 @@ public class GroundController : MonoBehaviour
             }
             // 全部缩放Scale.x
             m_groundTransforms[i].localScale = new Vector3(m_groundTransforms[i].localScale.x * scaleRatio, m_groundTransforms[i].localScale.y, m_groundTransforms[i].localScale.z);
-            // m_groundTransforms[i].localScale = new Vector3(m_groundTransforms[i].localScale.x * scaleRatio, m_groundTransforms[i].localScale.y, m_groundTransforms[i].localScale.z);
         }
     }
     /// <summary> Top视图缩放 </summary>
@@ -285,20 +283,20 @@ public class GroundController : MonoBehaviour
             m_groundTransforms[i].localScale = new Vector3(m_groundTransforms[i].localScale.x * scaleRatio, m_groundTransforms[i].localScale.y * scaleRatio, m_groundTransforms[i].localScale.z);
         }
     }
-    /// <summary> Front视图恢复到初始Scale </summary>
-    void BackToFrontInitialScale(float scaleRatio)
+    /// <summary> 恢复到初始Scale </summary>
+    void BackToInitialScale(Action<float> ScaleInScene, float scaleRatio)
     {
         int ratio = (int)scaleRatio;
         switch (ratio)
         {
             case 0:
-                ScaleInFront(2.0f);
+                ScaleInScene(2.0f);
                 break;
             case 2:
-                ScaleInFront(0.5f);
+                ScaleInScene(1 / scaleRatio);
                 break;
             case 4:
-                ScaleInFront(0.25f);
+                ScaleInScene(1 / scaleRatio);
                 break;
             default:
                 // 缩放1x，不做处理.
@@ -306,27 +304,7 @@ public class GroundController : MonoBehaviour
         }
         m_scaleRatio = 1;
     }
-    /// <summary> Top视图恢复到初始Scale </summary>
-    void BackToTopInitialScale(float scaleRatio)
-    {
-        int ratio = (int)scaleRatio;
-        switch (ratio)
-        {
-            case 0:
-                ScaleInTop(2.0f);
-                break;
-            case 2:
-                ScaleInTop(0.5f);
-                break;
-            case 4:
-                ScaleInTop(0.25f);
-                break;
-            default:
-                // 缩放1x，不做处理.
-                break;
-        }
-        m_scaleRatio = 1;
-    }
+
     /// <summary> 为旋转到Top视图准备, 恢复Scale.y </summary>
     void SetScaleForTop(float duration)
     {

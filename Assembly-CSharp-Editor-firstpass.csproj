@@ -53,7 +53,6 @@
      <None Include="Assets\Plugins\DOTween\DOTween46.xml" />
      <None Include="Assets\Plugins\DOTween\DOTween50.xml" />
      <None Include="Assets\Plugins\DOTween\readme.txt" />
-     <None Include="Assets\Material\AlphaSelfIllum.shader" />
  <Reference Include="UnityEditor.Advertisements">
  <HintPath>/Applications/Unity/Unity.app/Contents/UnityExtensions/Unity/Advertisements/Editor/UnityEditor.Advertisements.dll</HintPath>
  </Reference>
