@@ -90,27 +90,17 @@ public class GroundController : MonoBehaviour
     /// <summary> 获取Ground对象 </summary>
     void GetGroundObject()
     {
-        // 使用GameObject.FindGameObjectsWithTag拿到的Ground可能顺序也可能逆序排列, 
-        // 使用if－else确保m_groundTransforms中的元素排列顺序与Hierarchy中排列顺序一致（从上到下0->n）.
         GameObject[] groundObjects = GameObject.FindGameObjectsWithTag("Ground");
-        if (groundObjects[0].name == "Ground01")
+        for (int i = 0; i < groundObjects.Length; i++)
         {
-            for (int i = 0; i < groundObjects.Length; i++)
-            {
-                m_groundTransforms.Add(groundObjects[i].transform);
-            }
+            m_groundTransforms.Add(groundObjects[i].transform);
         }
-        else if (groundObjects[groundObjects.Length - 1].name == "Ground01")
-        {
-            for (int i = 0; i < groundObjects.Length; i++)
-            {
-                m_groundTransforms.Add(groundObjects[groundObjects.Length - 1 - i].transform);
-            }
-        }
-        else
-        {
-            Debug.LogError(" FindGameObjectsWithTag()得到的Ground存储顺序不符合要求！");
-        }
+        m_groundTransforms.Sort(SortByName);
+    }
+
+    private int SortByName(Transform groundX, Transform groundY)
+    {
+        return groundX.gameObject.name.CompareTo(groundY.gameObject.name);
     }
 
     // Update is called once per frame
