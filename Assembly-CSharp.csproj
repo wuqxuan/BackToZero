@@ -51,6 +51,7 @@
      <Compile Include="Assets\Scripts\Ball.cs" />
      <Compile Include="Assets\Scripts\CameraFollowPlayer.cs" />
      <Compile Include="Assets\Scripts\ControllingCameraAspectScript.cs" />
+     <Compile Include="Assets\Scripts\GameManager.cs" />
      <Compile Include="Assets\Scripts\Ground.cs" />
      <Compile Include="Assets\Scripts\GroundController.cs" />
      <Compile Include="Assets\Scripts\Menu.cs" />

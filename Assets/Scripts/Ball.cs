@@ -35,20 +35,21 @@ public class Ball : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (m_groundController.IsStartGame)
+        float moveHorizontal = Input.GetAxisRaw("Horizontal");
+        float moveVertical = Input.GetAxisRaw("Vertical");
+        if (!m_groundController.IsStartGame)
         {
-            float moveHorizontal = Input.GetAxisRaw("Horizontal");
-            if (m_groundController.IsInTopScene)
-            {
-                float moveVertical = Input.GetAxisRaw("Vertical");
-                m_ballRigidbody.velocity = new Vector3(moveHorizontal * m_maxSpeed, moveVertical * m_maxSpeed, m_ballRigidbody.velocity.z);
-            }
-            else
-            {
-                float moveVertical = 0.0f;
-                m_ballRigidbody.velocity = new Vector3(moveHorizontal * m_maxSpeed, moveVertical * m_maxSpeed, m_ballRigidbody.velocity.z);
-            }
-            m_groundController.BallTransform.position = new Vector3(m_groundController.BallTransform.position.x, m_groundController.BallTransform.position.y, m_groundController.BallTransform.position.z);
+            moveHorizontal = 0.0f;
+            moveVertical = 0.0f;
+        }
+        if (m_groundController.IsInTopScene)
+        {
+            m_ballRigidbody.velocity = new Vector3(moveHorizontal * m_maxSpeed, moveVertical * m_maxSpeed, m_ballRigidbody.velocity.z);
+        }
+        else
+        {
+            moveVertical = 0.0f;
+            m_ballRigidbody.velocity = new Vector3(moveHorizontal * m_maxSpeed, moveVertical * m_maxSpeed, m_ballRigidbody.velocity.z);
         }
     }
 

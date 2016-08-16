@@ -12,7 +12,6 @@ public class UITipsController : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		m_timer += Time.deltaTime;
-		// Debug.Log(m_timer + " : m_timer");
 		if (Input.GetKeyDown(KeyCode.Escape))
 		{
 			SceneManager.LoadScene("LevelMenu");
