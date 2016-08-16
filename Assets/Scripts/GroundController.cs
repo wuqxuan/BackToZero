@@ -17,6 +17,11 @@ public class GroundController : MonoBehaviour
     private string m_groundName;
     private int m_scaleRatio = 1;
     [SerializeField]
+    private GameObject[] m_frontWalls;
+    [SerializeField]
+    private GameObject[] m_topWalls;
+
+    [SerializeField]
     private List<Transform> m_groundTransforms = new List<Transform>();
     [SerializeField]
     private List<Ground> m_groundScripts = new List<Ground>();
@@ -90,12 +95,17 @@ public class GroundController : MonoBehaviour
     /// <summary> 获取Ground对象 </summary>
     void GetGroundObject()
     {
+        m_topWalls = GameObject.FindGameObjectsWithTag("WallTop");
+        m_frontWalls = GameObject.FindGameObjectsWithTag("WallFront");
         GameObject[] groundObjects = GameObject.FindGameObjectsWithTag("Ground");
-        for (int i = 0; i < groundObjects.Length; i++)
+        if (groundObjects.Length != 0)
         {
-            m_groundTransforms.Add(groundObjects[i].transform);
+            for (int i = 0; i < groundObjects.Length; i++)
+            {
+                m_groundTransforms.Add(groundObjects[i].transform);
+            }
+            m_groundTransforms.Sort(SortByName);
         }
-        m_groundTransforms.Sort(SortByName);
     }
 
     private int SortByName(Transform groundX, Transform groundY)
@@ -141,7 +151,6 @@ public class GroundController : MonoBehaviour
         }
         //==============================================================================================
         // Space key
-        // Debug.Log(Input.GetKeyDown(KeyCode.Space) + " :Input.GetKeyDown(KeyCode.Space" + Time.time  + " :Time.time + " + m_currentTime + " :m_currentTime");
         bool isCanPressSpaceKey = (Time.time >= m_currentTime) && m_isStartGame && m_ballScript.IsCollideWithObject;
         if (Input.GetKeyDown(KeyCode.Space) && isCanPressSpaceKey)
         {
@@ -195,6 +204,7 @@ public class GroundController : MonoBehaviour
             RotateAroundBall(90.0f, 0.6f, 0.2f);
             // 4.设置Front视图Position.z相等
             SetPositionZ(m_initialFrontPosZ[objectName], 0.9f);
+            SetFrontAndTopWall(true, false);
         }
         else
         {
@@ -220,12 +230,33 @@ public class GroundController : MonoBehaviour
             RotateAroundBall(-90.0f, 0.9f, 0.2f);
             // 4.设置Top视图Position.z相等
             SetPositionZ(m_topPositionZ[objectName], 1.1f);
+            SetFrontAndTopWall(false, true);
         }
         else
         {
             Debug.LogError("Ground和Ball不接触, 不能旋转");
         }
         // End =========================================================================================
+    }
+    /// <summary> 设置Ground周围Collider的状态 </summary>
+    private void SetFrontAndTopWall(bool isFrontActive, bool isTopActive)
+    {
+        if (m_frontWalls.Length != 0 && m_topWalls.Length != 0)
+        {
+            foreach (var wall in m_frontWalls)
+            {
+                wall.SetActive(isFrontActive);
+            }
+
+            foreach (var wall in m_topWalls)
+            {
+                wall.SetActive(isTopActive);
+            }
+        }
+        else
+        {
+            Debug.Log("Wall为空");
+        }
     }
 
     /// <summary> 若有Ground接触与Ball接触，得到该Ground的名字 </summary>
@@ -246,14 +277,13 @@ public class GroundController : MonoBehaviour
         {
             Vector3 m_currentCubePos = m_groundTransforms[i].position;
             Vector3 m_distanceToBall = m_currentCubePos - m_ballPosition;
-            if (m_groundTransforms[i].gameObject.name == m_ballScript.CollideObjectName)
+            // 和Ball接触或与和Ball接触的Ground的Position.y相同，改变Position.x，不改变Position.y
+            if (m_groundTransforms[i].gameObject.name == m_ballScript.CollideObjectName || Mathf.Abs(m_groundTransforms[i].position.y - m_ballPosition.y) < 0.5)
             {
-                // 和Ball接触，改变Position.x，不改变Position.y
                 m_groundTransforms[i].position = new Vector3(m_ballPosition.x + m_distanceToBall.x * scaleRatio, m_groundTransforms[i].position.y, m_groundTransforms[i].position.z);
             }
             else
             {
-                // 不和Ball接触，改变Position.x和Position.y
                 m_groundTransforms[i].position = new Vector3(m_ballPosition.x + m_distanceToBall.x * scaleRatio, m_ballPosition.y + m_distanceToBall.y * scaleRatio, m_groundTransforms[i].position.z);
             }
             // 全部缩放Scale.x
