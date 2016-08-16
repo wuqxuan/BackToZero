@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
-
+using UnityEngine.UI;
+using DG.Tweening;
 public class Ball : MonoBehaviour
 {
     //==============================================================================================
@@ -9,6 +10,7 @@ public class Ball : MonoBehaviour
     private float m_maxSpeed = 2.0f;
     private bool m_isCollideWithObject;
     private string m_collideObjectName;
+    public Text m_gameOver;
     //==============================================================================================
     // Property
     public bool IsCollideWithObject
@@ -33,18 +35,21 @@ public class Ball : MonoBehaviour
 
     void FixedUpdate()
     {
-        float moveHorizontal = Input.GetAxisRaw("Horizontal");
-        if (m_groundController.IsInTopScene)
+        if (m_groundController.IsStartGame)
         {
-            float moveVertical = Input.GetAxisRaw("Vertical");
-            m_ballRigidbody.velocity = new Vector3(moveHorizontal * m_maxSpeed, moveVertical * m_maxSpeed, m_ballRigidbody.velocity.z);
+            float moveHorizontal = Input.GetAxisRaw("Horizontal");
+            if (m_groundController.IsInTopScene)
+            {
+                float moveVertical = Input.GetAxisRaw("Vertical");
+                m_ballRigidbody.velocity = new Vector3(moveHorizontal * m_maxSpeed, moveVertical * m_maxSpeed, m_ballRigidbody.velocity.z);
+            }
+            else
+            {
+                float moveVertical = 0.0f;
+                m_ballRigidbody.velocity = new Vector3(moveHorizontal * m_maxSpeed, moveVertical * m_maxSpeed, m_ballRigidbody.velocity.z);
+            }
+            m_groundController.BallTransform.position = new Vector3(m_groundController.BallTransform.position.x, m_groundController.BallTransform.position.y, m_groundController.BallTransform.position.z);
         }
-        else
-        {
-            float moveVertical = 0.0f;
-            m_ballRigidbody.velocity = new Vector3(moveHorizontal * m_maxSpeed, moveVertical * m_maxSpeed, m_ballRigidbody.velocity.z);
-        }
-        m_groundController.BallTransform.position = new Vector3(m_groundController.BallTransform.position.x, m_groundController.BallTransform.position.y, m_groundController.BallTransform.position.z);
     }
 
     void OnCollisionEnter(Collision other)
@@ -73,7 +78,7 @@ public class Ball : MonoBehaviour
         {
             m_isCollideWithObject = false;
             // Debug.Log("Ball: 不再接触 " + m_collideObjectName + "," + "m_isCollideWithObject = " + m_isCollideWithObject);
-        }  
+        }
     }
 
     void OnTriggerEnter(Collider other)
@@ -81,7 +86,8 @@ public class Ball : MonoBehaviour
         if (other.gameObject.CompareTag("Goal"))
         {
             other.gameObject.SetActive(false);
-            Application.Quit();
+            m_groundController.IsStartGame = false;
+            m_gameOver.DOFade(1.0f, 3.0f);
         }
     }
 }

@@ -11,7 +11,9 @@ public class GroundController : MonoBehaviour
     private Transform m_ballTransform;
     private Vector3 m_ballPosition;
     private bool m_isInTopScene = false;
+    // [SerializeField]
     private bool m_isStartGame = false;
+    private bool m_isFirstTimeStartGame = true;
     private bool m_isLargerThanBallPosZ;
     private float m_currentOffsetPosY;
     private string m_groundName;
@@ -49,12 +51,13 @@ public class GroundController : MonoBehaviour
     public bool IsStartGame
     {
         get { return m_isStartGame; }
+        set { m_isStartGame = value; }
     }
     public Transform BallTransform
     {
         get { return m_ballTransform; }
     }
-
+   
     //==============================================================================================
     // Methods
     void Awake()
@@ -176,10 +179,11 @@ public class GroundController : MonoBehaviour
     /// <summary> 开始运行游戏，自动旋转到Top视图 </summary>
     void LateUpdate()
     {
-        if (!m_isStartGame && m_ballScript.IsCollideWithObject)
+        if (m_isFirstTimeStartGame && !m_isStartGame && m_ballScript.IsCollideWithObject)
         {
             m_currentTime = Time.time + mc_spaceKeyLockDuration;
             m_isStartGame = true;
+            m_isFirstTimeStartGame = false;
             RotateToTopScene(m_groundName);
         }
     }
